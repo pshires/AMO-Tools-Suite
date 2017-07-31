@@ -203,6 +203,7 @@ std::vector<double> EstimateFLA::calculate() {
         for (int i = 0; i < 6; i++) {
             plValues[i] = eeFLAValue * plMultiplier[i];
         }
+    } else if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
 
     } else if (efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
         for (int i = 0; i < 6; i++) {
