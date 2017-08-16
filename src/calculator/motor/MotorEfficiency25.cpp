@@ -8,6 +8,7 @@
  */
 
 #include <cmath>
+#include <unordered_map>
 #include "calculator/motor/MotorEfficiency25.h"
 #include "calculator/motor/Poles.h"
 
@@ -215,6 +216,37 @@ std::vector<double> MotorEfficiency25::calculate() {
     std::vector<double> motorEfficiency_(5);
 
     if (efficiencyClass_ == Motor::EfficiencyClass::ENERGY_EFFICIENT || efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
+	    if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
+		    if (motorRatedPower_ > 500) motorRatedPower_ = 500;
+            if (polechooser > 2) polechooser = 2;
+        }
+
+        std::unordered_map<double, std::tuple<double, double, double>> fullLoadPremiumEfficiencies = {
+                {5, {88.5, 89.5, 89.5}},
+                {7.5, {89.5, 91.7, 91}},
+                {10, {90.2, 91.7, 91}},
+                {15, {91, 92.4, 91.7}},
+                {20, {91, 93, 91.7}},
+                {25, {91.7, 93.6, 93}},
+                {30, {91.7, 93.6, 93}},
+                {40, {92.4, 94.1, 94.1}},
+                {50, {93, 94.5, 94.1}},
+                {60, {93.6, 95, 94.5}},
+                {75, {93.6, 95.4, 94.5}},
+                {100, {94.1, 95.4, 95}},
+                {125, {95, 95.4, 95}},
+                {150, {95, 95.8, 95.8}},
+                {200, {95.4, 96.2, 95.8}},
+                {250, {95.8, 96.2, 95.8}},
+                {300, {95.8, 96.2, 95.8}},
+                {350, {95.8, 96.2, 95.8}},
+                {400, {95.8, 96.2, 95.8}},
+                {450, {95.8, 96.2, 95.8}},
+                {500, {95.8, 96.2, 95.8}}
+        };
+
+        auto const fullLoadPremiumEfficiency = std::get<polechooser>(fullLoadPremiumEfficiencies[motorRatedPower_]);
+
         for (int i = 0; i < 4; ++i) { //cols
             if (motorRatedPower_ <= 125) {
                 motorEfficiency_[i] = (eeLt125hp[polechooser][0][i] + (eeLt125hp[polechooser][1][i] *
@@ -229,9 +261,9 @@ std::vector<double> MotorEfficiency25::calculate() {
                                        (eeGt125hp[polechooser][3][i] *
                                         exp(-1 * eeGt125hp[polechooser][4][i] * motorRatedPower_))) / 100;
             }
-        }
-        if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
-            // extra stuff
+            if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
+                motorEfficiency_[i] = motorEfficiency_[i] * fullLoadPremiumEfficiency / motorEfficiency_[3];
+            }
         }
     } else if (efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
         for (int i = 0; i < 4; ++i) { //cols

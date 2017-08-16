@@ -15,12 +15,9 @@
 
 double MotorEfficiency::calculate() {
 
-    if (efficiencyClass_ == Motor::EfficiencyClass::ENERGY_EFFICIENT) {
-        MotorEfficiency25 motorEfficiency25(efficiencyClass_, motorRatedPower_, motorRpm_, lineFrequency_);
-        motorEfficiency_ = motorEfficiency25.calculate();
-    } else if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
-
-    } else if (efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
+    if (efficiencyClass_ == Motor::EfficiencyClass::ENERGY_EFFICIENT
+        || efficiencyClass_ == Motor::EfficiencyClass::PREMIUM
+        || efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
         MotorEfficiency25 motorEfficiency25(efficiencyClass_, motorRatedPower_, motorRpm_, lineFrequency_);
         motorEfficiency_ = motorEfficiency25.calculate();
     } else if (efficiencyClass_ == Motor::EfficiencyClass::SPECIFIED) {
