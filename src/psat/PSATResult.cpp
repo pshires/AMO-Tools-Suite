@@ -101,10 +101,9 @@ double PSATResult::calculateOptimal() {
     optimal_.motorShaftPower_ = optimalMotorShaftPower.calculate();
     OptimalMotorSize optimalMotorSize(optimal_.motorShaftPower_, motor_.getSizeMargin());
     optimal_.motorRatedPower_ = optimalMotorSize.calculate();
-    // TODO optimal motor efficiency should be from premium - kristina
     OptimalMotorPower optimalMotorPower(optimal_.motorRatedPower_, fieldData_.getMotorPower(), motor_.getMotorRpm(),
                                         motor_.getLineFrequency(),
-                                        motor_.getEfficiencyClass(), Motor::EfficiencyClass::ENERGY_EFFICIENT, motor_.getSpecifiedEfficiency(),
+                                        motor_.getEfficiencyClass(), Motor::EfficiencyClass::PREMIUM, motor_.getSpecifiedEfficiency(),
                                         motor_.getMotorRatedVoltage(), motor_.getFullLoadAmps(),
                                         fieldData_.getVoltage(), fieldData_.getLoadEstimationMethod(),
                                         fieldData_.getMotorAmps(), optimal_.motorShaftPower_);

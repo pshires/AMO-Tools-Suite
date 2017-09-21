@@ -262,8 +262,10 @@ std::vector<double> MotorEfficiency25::calculate() {
                                        (eeGt125hp[polechooser][3][i] *
                                         exp(-1 * eeGt125hp[polechooser][4][i] * motorRatedPower_))) / 100;
             }
-            if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
-                motorEfficiency_[i] = motorEfficiency_[i] * fullLoadPremiumEfficiency / motorEfficiency_[3];
+        }
+        if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
+            for (int i = 0; i < 4; i++) {
+                motorEfficiency_[i] *= (fullLoadPremiumEfficiency / 100) / motorEfficiency_[3];
             }
         }
     } else if (efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
