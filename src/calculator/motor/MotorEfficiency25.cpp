@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <unordered_map>
+#include <array>
 #include "calculator/motor/MotorEfficiency25.h"
 #include "calculator/motor/Poles.h"
 
@@ -221,7 +222,7 @@ std::vector<double> MotorEfficiency25::calculate() {
             if (polechooser > 2) polechooser = 2;
         }
 
-        std::unordered_map<double, std::tuple<double, double, double>> fullLoadPremiumEfficiencies = {
+        std::unordered_map<double, std::array<double, 3>> fullLoadPremiumEfficiencies = {
                 {5, {88.5, 89.5, 89.5}},
                 {7.5, {89.5, 91.7, 91}},
                 {10, {90.2, 91.7, 91}},
@@ -245,7 +246,7 @@ std::vector<double> MotorEfficiency25::calculate() {
                 {500, {95.8, 96.2, 95.8}}
         };
 
-        auto const fullLoadPremiumEfficiency = std::get<polechooser>(fullLoadPremiumEfficiencies[motorRatedPower_]);
+        auto const fullLoadPremiumEfficiency = fullLoadPremiumEfficiencies[motorRatedPower_][polechooser];
 
         for (int i = 0; i < 4; ++i) { //cols
             if (motorRatedPower_ <= 125) {

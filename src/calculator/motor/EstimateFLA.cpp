@@ -212,7 +212,7 @@ std::vector<double> EstimateFLA::calculate() {
         const double effValPE = motorEfficiency.calculate();
 
           for (int i = 0; i < 6; i++) {
-              plValues[i] = seFLAValue * plMultiplier[i] * effvalEE / effvalPE;
+              plValues[i] = seFLAValue * plMultiplier[i] * effValEE / effValPE;
           }
 
     } else if (efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
