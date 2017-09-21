@@ -8,6 +8,7 @@
 #include <nan.h>
 #include <node.h>
 #include <iostream>
+#include <string>
 #include "calculator/furnace/EfficiencyImprovement.h"
 #include "calculator/furnace/EnergyEquivalency.h"
 #include "calculator/furnace/FlowCalculationsEnergyUse.h"
@@ -40,18 +41,17 @@ using namespace v8;
 Local<Object> inp;
 Local<Object> r;
 
-double Get(const char *nm) {
+double Get(std::string const & nm) {
     Local<String> getName = Nan::New<String>(nm).ToLocalChecked();
 
     auto rObj = inp->ToObject()->Get(getName);
     if (rObj->IsUndefined()) {
-        std::cout<<nm;
-        //assert(!"defined");
+        ThrowTypeError(std::string("Get method in phast.h: " + nm + " not present in object").c_str());
     }
     return rObj->NumberValue();
 }
 
-void SetR(const char *nm, double n) {
+void SetR(std::string const & nm, double n) {
     Local<String> getName = Nan::New<String>(nm).ToLocalChecked();
     Local<Number> getNum = Nan::New<Number>(n);
     Nan::Set(r, getName, getNum);
@@ -63,16 +63,6 @@ FlowCalculationsEnergyUse::Gas gas() {
 
 FlowCalculationsEnergyUse::Section section() {
     return (FlowCalculationsEnergyUse::Section)(int)Get("sectionType");
-}
-
-
-/**********************
- * Test methods
- */
-
-NAN_METHOD(initTest) {
-        Local<String> temp = Nan::New<String>("Hello").ToLocalChecked();
-        info.GetReturnValue().Set(temp);
 }
 
 NAN_METHOD(atmosphere) {
@@ -114,7 +104,7 @@ NAN_METHOD(auxiliaryPowerLoss) {
 }
 
 
-NAN_METHOD(energyInput) {
+NAN_METHOD(energyInputEAF) {
 
 /**
      * Constructor for the Electric Arc Furnace (EAF) heat loss with all inputs specified
@@ -122,8 +112,6 @@ NAN_METHOD(energyInput) {
      * @param naturalGasHeatInput double, value of total heat input to the heating system (furnace/oven) from all
      *                              sources of heat supplied (natural gas, carbon, fuel oil, etc.)
      *                              measured in mm btu/cycle
-     * @param naturalGasFlow double, natural gas flow measured in cu.ft/cycle
-     * @param measuredOxygenFlow double, oxygen flow to the furnace measured in scfh
      * @param coalCarbonInjection double, mass of coal or carbon injection for the cycle measured in lbs/cycle
      * @param coalHeatingValue double, heating value for the coal or carbon injected measured in btu/lb
      * @param electrodeUse double, electrode use measured in lbs/cycle
@@ -135,22 +123,21 @@ NAN_METHOD(energyInput) {
      * */
     inp = info[0]->ToObject();
     r = Nan::New<Object>();
-    EnergyInputEAF eaf(Get("naturalGasHeatInput"), Get("naturalGasFlow"), Get("measuredOxygenFlow"), Get("coalCarbonInjection"), Get("coalHeatingValue"), Get("electrodeUse"), Get("electrodeHeatingValue"), Get("otherFuels"), Get("electricityInput"));
-    double heatDelivered = eaf.getHeatDelivered();
-    double kwhCycle = eaf.getKwhCycle();
-    double totalKwhCycle = eaf.getTotalKwhPerCycle();
+    EnergyInputEAF eaf(Get("naturalGasHeatInput"), Get("coalCarbonInjection"), Get("coalHeatingValue"), Get("electrodeUse"),
+                       Get("electrodeHeatingValue"), Get("otherFuels"), Get("electricityInput"));
+    const double heatDelivered = eaf.getHeatDelivered();
+    const double totalChemicalEnergyInput = eaf.getTotalChemicalEnergyInput();
+
     SetR("heatDelivered", heatDelivered);
-    SetR("kwhCycle", kwhCycle);
-    SetR("totalKwhCycle", totalKwhCycle);
+    SetR("totalChemicalEnergyInput", totalChemicalEnergyInput);
     info.GetReturnValue().Set(r);
 }
 
-NAN_METHOD(exhaustGas) {
-
+NAN_METHOD(exhaustGasEAF) {
     inp = info[0]->ToObject();
-    ExhaustGasEAF eg(Get("cycleTime"), Get("offGasTemp"), Get("CO"), Get("H2"), Get("O2"), Get("CO2"), Get("combustibleGases"), Get("vfr"), Get("dustLoading"), Get("otherLosses"));
-    double heatLoss = eg.getTotalKwhPerCycle();
-    Local<Number> retval = Nan::New(heatLoss);
+    ExhaustGasEAF eg(Get("offGasTemp"), Get("CO"), Get("H2"), Get("combustibleGases"), Get("vfr"), Get("dustLoading"));
+	const double totalHeatExhaust = eg.getTotalHeatExhaust();
+    Local<Number> retval = Nan::New(totalHeatExhaust);
     info.GetReturnValue().Set(retval);
 }
 
@@ -186,8 +173,9 @@ NAN_METHOD(gasCoolingLosses) {
   * @return heatLoss double
   * */
     inp = info[0]->ToObject();
-    GasCoolingLosses gcl(Get("flowRate"), Get("initialTemperature"), Get("finalTemperature"), Get("specificHeat"), Get("correctionFactor"));
-    double heatLoss = gcl.getHeatLoss();
+    GasCoolingLosses gcl(Get("flowRate"), Get("initialTemperature"), Get("finalTemperature"), Get("specificHeat"),
+                         Get("correctionFactor"), Get("gasDensity"));
+    const double heatLoss = gcl.getHeatLoss();
     Local<Number> retval = Nan::New(heatLoss);
     info.GetReturnValue().Set(retval);
 }
@@ -377,7 +365,7 @@ NAN_METHOD(solidLoadChargeMaterial) {
  * @param dischargeTemperature double, charge material discharge temperature in °F
  * @param waterVaporDischargeTemperature double, water vapor discharge temperature in °F
  * @param chargeMelted double, charge melted (% of dry charge) in %
- * @param chargedReacted double, charge Reacted (% of dry charge) in %
+ * @param chargeReacted double, charge Reacted (% of dry charge) in %
  * @param reactionHeat double, heat of reaction in Btu/lb
  * @param additionalHeat double, additional heat required in Btu/hr
  *
@@ -390,7 +378,7 @@ NAN_METHOD(solidLoadChargeMaterial) {
     } else {
         thermicReactionType = LoadChargeMaterial::ThermicReactionType::EXOTHERMIC;
     }
-    SolidLoadChargeMaterial slcm(thermicReactionType, Get("specificHeatSolid"), Get("latentHeat"), Get("specificHeatLiquid"), Get("meltingPoint"), Get("chargeFeedRate"), Get("waterContentCharged"), Get("waterContentDischarged"), Get("initialTemperature"), Get("dischargeTemperature"), Get("waterVaporDischargeTemperature"), Get("chargeMelted"), Get("chargedReacted"), Get("reactionHeat"), Get("additionalHeat"));
+    SolidLoadChargeMaterial slcm(thermicReactionType, Get("specificHeatSolid"), Get("latentHeat"), Get("specificHeatLiquid"), Get("meltingPoint"), Get("chargeFeedRate"), Get("waterContentCharged"), Get("waterContentDischarged"), Get("initialTemperature"), Get("dischargeTemperature"), Get("waterVaporDischargeTemperature"), Get("chargeMelted"), Get("chargeReacted"), Get("reactionHeat"), Get("additionalHeat"));
     double heatLoss = slcm.getTotalHeat();
     Local<Number> retval = Nan::New(heatLoss);
     info.GetReturnValue().Set(retval);

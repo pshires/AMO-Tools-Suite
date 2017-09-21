@@ -16,14 +16,14 @@ NAN_MODULE_INIT(InitPhast) {
     Nan::Set(target, New<String>("fixtureLosses").ToLocalChecked(),
              GetFunction(New<FunctionTemplate>(fixtureLosses)).ToLocalChecked());
 
-    Nan::Set(target, New<String>("energyInput").ToLocalChecked(),
-             GetFunction(New<FunctionTemplate>(energyInput)).ToLocalChecked());
+    Nan::Set(target, New<String>("energyInputEAF").ToLocalChecked(),
+             GetFunction(New<FunctionTemplate>(energyInputEAF)).ToLocalChecked());
 
     Nan::Set(target, New<String>("energyInputExhaustGasLosses").ToLocalChecked(),
              GetFunction(New<FunctionTemplate>(energyInputExhaustGasLosses)).ToLocalChecked());
 
-    Nan::Set(target, New<String>("exhaustGas").ToLocalChecked(),
-             GetFunction(New<FunctionTemplate>(exhaustGas)).ToLocalChecked());
+    Nan::Set(target, New<String>("exhaustGasEAF").ToLocalChecked(),
+             GetFunction(New<FunctionTemplate>(exhaustGasEAF)).ToLocalChecked());
 
     Nan::Set(target, New<String>("flueGasLossesByVolume").ToLocalChecked(),
              GetFunction(New<FunctionTemplate>(flueGasLossesByVolume)).ToLocalChecked());
@@ -69,9 +69,6 @@ NAN_MODULE_INIT(InitPhast) {
 
     Nan::Set(target, New<String>("waterCoolingLosses").ToLocalChecked(),
              GetFunction(New<FunctionTemplate>(waterCoolingLosses)).ToLocalChecked());
-
-    Nan::Set(target, New<String>("initTest").ToLocalChecked(),
-             GetFunction(New<FunctionTemplate>(initTest)).ToLocalChecked());
 
     Nan::Set(target, New<String>("efficiencyImprovement").ToLocalChecked(),
              GetFunction(New<FunctionTemplate>(efficiencyImprovement)).ToLocalChecked());

@@ -55,7 +55,7 @@ public:
         double specifiedEfficiency,
         double motorRatedVoltage,
         double fullLoadAmps,
-        double sizeMargin
+        double sizeMargin = 1
     ) :
         lineFrequency_(lineFrequency),
         motorRatedPower_(motorRatedPower),

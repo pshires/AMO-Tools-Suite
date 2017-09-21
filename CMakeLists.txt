@@ -5,7 +5,7 @@ set(CMAKE_MACOSX_RPATH 1)
 
 set( CMAKE_VERSION_MAJOR 0 )
 set( CMAKE_VERSION_MINOR 1 )
-set( CMAKE_VERSION_PATCH 34 )
+set( CMAKE_VERSION_PATCH 38 )
 
 set(AMO_SUITE_VERSION "${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}")
 INCLUDE_DIRECTORIES (node_modules/nan)
@@ -113,7 +113,12 @@ set(SOURCE_FILES
         src/calculator/furnace/HumidityRatio.cpp
         src/ssmt/SaturatedProperties.cpp
         src/ssmt/SteamProperties.cpp
-        src/ssmt/SteamSystemModelerTool.cpp)
+        src/ssmt/SteamSystemModelerTool.cpp
+        src/ssmt/Boiler.cpp
+        src/ssmt/HeatLoss.cpp
+        src/ssmt/FlashTank.cpp
+        src/ssmt/PRV.cpp
+        src/ssmt/Deaerator.cpp)
 
 set(INCLUDE_FILES
         include/psat/FieldData.h
@@ -183,11 +188,18 @@ set(INCLUDE_FILES
         include/calculator/furnace/HumidityRatio.h
         include/ssmt/SaturatedProperties.h
         include/ssmt/SteamProperties.h
-        include/ssmt/SteamSystemModelerTool.h )
+        include/ssmt/SteamSystemModelerTool.h
+        include/ssmt/Boiler.h
+        include/ssmt/HeatLoss.h
+        include/ssmt/FlashTank.h
+        include/ssmt/PRV.h
+        include/ssmt/FlashTank.h
+        include/ssmt/Deaerator.h)
 
 set(TEST_FILES
         tests/OptimalSpecificSpeedCorrection.unit.cpp
         tests/MotorEfficiency.unit.cpp
+        tests/PSATResult.unit.cpp
         tests/SolidLoadChargeMaterial.unit.cpp
         tests/LiquidLoadChargeMaterial.unit.cpp
         tests/Atmosphere.unit.cpp
@@ -215,10 +227,15 @@ set(TEST_FILES
         tests/HumidityRatio.unit.cpp
         tests/SaturatedProperties.unit.cpp
         tests/SteamProperties.unit.cpp
-        )
+        tests/Boiler.unit.cpp
+        tests/HeatLoss.unit.cpp
+        tests/FlashTank.unit.cpp
+        tests/PRV.unit.cpp
+        tests/FlashTank.unit.cpp
+        tests/Deaerator.unit.cpp)
 
-find_package(PythonInterp 2.7 REQUIRED)
-execute_process( COMMAND ${PYTHON_EXECUTABLE} "${PROJECT_SOURCE_DIR}/scripts/seed_database.py" "${CMAKE_DATABASE_OUTPUT_DIRECTORY}/amo_tools_suite.db")
+#find_package(PythonInterp 2.7 REQUIRED)
+#execute_process( COMMAND ${PYTHON_EXECUTABLE} "${PROJECT_SOURCE_DIR}/scripts/seed_database.py" "${CMAKE_DATABASE_OUTPUT_DIRECTORY}/amo_tools_suite.db")
 
 if (MINGW)
   set(CMAKE_SHARED_LIBRARY_PREFIX "")

@@ -32,6 +32,21 @@ using namespace v8;
 Local<Object> inp;
 Local<Object> r;
 
+double Get(std::string const & nm) {
+	Local<String> getName = Nan::New<String>(nm).ToLocalChecked();
+	auto rObj = inp->ToObject()->Get(getName);
+	if (rObj->IsUndefined()) {
+		ThrowTypeError(std::string("Get method in psat.h: " + nm + " not present in object").c_str());
+	}
+	return rObj->NumberValue();
+}
+
+void SetR(const char *nm, double n) {
+	Local<String> getName = Nan::New<String>(nm).ToLocalChecked();
+	Local<Number> getNum = Nan::New<Number>(n);
+	Nan::Set(r, getName, getNum);
+}
+
 NAN_METHOD(headToolSuctionTank) {
     /**
     * Constructor for the HeadToolSuctionTank class with all inputs specified
@@ -49,38 +64,39 @@ NAN_METHOD(headToolSuctionTank) {
     *
  * */
 
-        const double specificGravity = info[0]->NumberValue();
-        const double flowRate = info[1]->NumberValue();
-        const double suctionPipeDiameter = info[2]->NumberValue();
-        const double suctionTankGasOverPressure = info[3]->NumberValue();
-        const double suctionTankFluidSurfaceElevation = info[4]->NumberValue();
-        const double suctionLineLossCoefficients = info[5]->NumberValue();
-        const double dischargePipeDiameter = info[6]->NumberValue();
-        const double dischargeGaugePressure = info[7]->NumberValue();
-        const double dischargeGaugeElevation = info[8]->NumberValue();
-        const double dischargeLineLossCoefficients = info[9]->NumberValue();
+    inp = info[0]->ToObject();
+    const double specificGravity = Get("specificGravity");
+    const double flowRate = Get("flowRate");
+    const double suctionPipeDiameter = Get("suctionPipeDiameter");
+    const double suctionTankGasOverPressure = Get("suctionTankGasOverPressure");
+    const double suctionTankFluidSurfaceElevation = Get("suctionTankFluidSurfaceElevation");
+    const double suctionLineLossCoefficients = Get("suctionLineLossCoefficients");
+    const double dischargePipeDiameter = Get("dischargePipeDiameter");
+    const double dischargeGaugePressure = Get("dischargeGaugePressure");
+    const double dischargeGaugeElevation = Get("dischargeGaugeElevation");
+    const double dischargeLineLossCoefficients = Get("dischargeLineLossCoefficients");
 
-        HeadToolSuctionTank htst(specificGravity, flowRate, suctionPipeDiameter, suctionTankGasOverPressure,
-                                 suctionTankFluidSurfaceElevation, suctionLineLossCoefficients, dischargePipeDiameter,
-                                 dischargeGaugePressure, dischargeGaugeElevation, dischargeLineLossCoefficients);
+    HeadToolSuctionTank htst(specificGravity, flowRate, suctionPipeDiameter, suctionTankGasOverPressure,
+                             suctionTankFluidSurfaceElevation, suctionLineLossCoefficients, dischargePipeDiameter,
+                             dischargeGaugePressure, dischargeGaugeElevation, dischargeLineLossCoefficients);
 
-        ReturnCalcValues retval = htst.calculate();
-        Local<String> differentialElevationHead = Nan::New<String>("differentialElevationHead").ToLocalChecked();
-        Local<String> differentialPressureHead = Nan::New<String>("differentialPressureHead").ToLocalChecked();
-        Local<String> differentialVelocityHead = Nan::New<String>("differentialVelocityHead").ToLocalChecked();
-        Local<String> estimatedSuctionFrictionHead = Nan::New<String>("estimatedSuctionFrictionHead").ToLocalChecked();
-        Local<String> estimatedDischargeFrictionHead = Nan::New<String>("estimatedDischargeFrictionHead").ToLocalChecked();
-        Local<String> pumpHead = Nan::New<String>("pumpHead").ToLocalChecked();
-        Local<Object> obj = Nan::New<Object>();
-        Nan::Set(obj, differentialElevationHead, Nan::New<Number>(retval.differentialElevationHead));
-        Nan::Set(obj, differentialPressureHead, Nan::New<Number>(retval.differentialPressureHead));
-        Nan::Set(obj, differentialVelocityHead, Nan::New<Number>(retval.differentialVelocityHead));
-        Nan::Set(obj, estimatedSuctionFrictionHead, Nan::New<Number>(retval.estimatedSuctionFrictionHead));
-        Nan::Set(obj, estimatedDischargeFrictionHead, Nan::New<Number>(retval.estimatedDischargeFrictionHead));
-        Nan::Set(obj, estimatedDischargeFrictionHead, Nan::New<Number>(retval.estimatedDischargeFrictionHead));
-        Nan::Set(obj, pumpHead, Nan::New<Number>(retval.pumpHead));
+    auto rv = htst.calculate();
+    Local<String> differentialElevationHead = Nan::New<String>("differentialElevationHead").ToLocalChecked();
+    Local<String> differentialPressureHead = Nan::New<String>("differentialPressureHead").ToLocalChecked();
+    Local<String> differentialVelocityHead = Nan::New<String>("differentialVelocityHead").ToLocalChecked();
+    Local<String> estimatedSuctionFrictionHead = Nan::New<String>("estimatedSuctionFrictionHead").ToLocalChecked();
+    Local<String> estimatedDischargeFrictionHead = Nan::New<String>("estimatedDischargeFrictionHead").ToLocalChecked();
+    Local<String> pumpHead = Nan::New<String>("pumpHead").ToLocalChecked();
+	
+    Local<Object> obj = Nan::New<Object>();
+    Nan::Set(obj, differentialElevationHead, Nan::New<Number>(rv["elevationHead"]));
+    Nan::Set(obj, differentialPressureHead, Nan::New<Number>(rv["pressureHead"]));
+    Nan::Set(obj, differentialVelocityHead, Nan::New<Number>(rv["velocityHeadDifferential"]));
+    Nan::Set(obj, estimatedSuctionFrictionHead, Nan::New<Number>(rv["suctionHead"]));
+    Nan::Set(obj, estimatedDischargeFrictionHead, Nan::New<Number>(rv["dischargeHead"]));
+    Nan::Set(obj, pumpHead, Nan::New<Number>(rv["pumpHead"]));
 
-        info.GetReturnValue().Set(obj);
+    info.GetReturnValue().Set(obj);
 }
 
 NAN_METHOD(headTool) {
@@ -101,22 +117,23 @@ NAN_METHOD(headTool) {
     *
  * */
 
-        const double specificGravity = info[0]->NumberValue();
-        const double flowRate = info[1]->NumberValue();
-        const double suctionPipeDiameter = info[2]->NumberValue();
-        const double suctionGaugePressure = info[3]->NumberValue();
-        const double suctionGaugeElevation = info[4]->NumberValue();
-        const double suctionLineLossCoefficients = info[5]->NumberValue();
-        const double dischargePipeDiameter = info[6]->NumberValue();
-        const double dischargeGaugePressure = info[7]->NumberValue();
-        const double dischargeGaugeElevation = info[8]->NumberValue();
-        const double dischargeLineLossCoefficients = info[9]->NumberValue();
+    inp = info[0]->ToObject();
+    const double specificGravity = Get("specificGravity");
+    const double flowRate = Get("flowRate");
+    const double suctionPipeDiameter = Get("suctionPipeDiameter");
+    const double suctionGaugePressure = Get("suctionGaugePressure");
+    const double suctionGaugeElevation = Get("suctionGaugeElevation");
+    const double suctionLineLossCoefficients = Get("suctionLineLossCoefficients");
+    const double dischargePipeDiameter = Get("dischargePipeDiameter");
+    const double dischargeGaugePressure = Get("dischargeGaugePressure");
+    const double dischargeGaugeElevation = Get("dischargeGaugeElevation");
+    const double dischargeLineLossCoefficients = Get("dischargeLineLossCoefficients");
 
-        HeadTool ht(specificGravity, flowRate, suctionPipeDiameter, suctionGaugePressure,
-                    suctionGaugeElevation, suctionLineLossCoefficients, dischargePipeDiameter,
-                    dischargeGaugePressure, dischargeGaugeElevation, dischargeLineLossCoefficients);
+    HeadTool ht(specificGravity, flowRate, suctionPipeDiameter, suctionGaugePressure,
+                suctionGaugeElevation, suctionLineLossCoefficients, dischargePipeDiameter,
+                dischargeGaugePressure, dischargeGaugeElevation, dischargeLineLossCoefficients);
 
-        ReturnCalcValues retval = ht.calculate();
+    auto rv = ht.calculate();
     Local<String> differentialElevationHead = Nan::New<String>("differentialElevationHead").ToLocalChecked();
     Local<String> differentialPressureHead = Nan::New<String>("differentialPressureHead").ToLocalChecked();
     Local<String> differentialVelocityHead = Nan::New<String>("differentialVelocityHead").ToLocalChecked();
@@ -124,29 +141,14 @@ NAN_METHOD(headTool) {
     Local<String> estimatedDischargeFrictionHead = Nan::New<String>("estimatedDischargeFrictionHead").ToLocalChecked();
     Local<String> pumpHead = Nan::New<String>("pumpHead").ToLocalChecked();
     Local<Object> obj = Nan::New<Object>();
-    Nan::Set(obj, differentialElevationHead, Nan::New<Number>(retval.differentialElevationHead));
-    Nan::Set(obj, differentialPressureHead, Nan::New<Number>(retval.differentialPressureHead));
-    Nan::Set(obj, differentialVelocityHead, Nan::New<Number>(retval.differentialVelocityHead));
-    Nan::Set(obj, estimatedSuctionFrictionHead, Nan::New<Number>(retval.estimatedSuctionFrictionHead));
-    Nan::Set(obj, estimatedDischargeFrictionHead, Nan::New<Number>(retval.estimatedDischargeFrictionHead));
-    Nan::Set(obj, estimatedDischargeFrictionHead, Nan::New<Number>(retval.estimatedDischargeFrictionHead));
-    Nan::Set(obj, pumpHead, Nan::New<Number>(retval.pumpHead));
-        info.GetReturnValue().Set(obj);
-}
 
-double Get(const char *nm) {
-    Local<String> getName = Nan::New<String>(nm).ToLocalChecked();
-    auto rObj = inp->ToObject()->Get(getName);
-    if (rObj->IsUndefined()) {
-        assert(!"defined");
-    }
-    return rObj->NumberValue();
-}
-
-void SetR(const char *nm, double n) {
-    Local<String> getName = Nan::New<String>(nm).ToLocalChecked();
-    Local<Number> getNum = Nan::New<Number>(n);
-    Nan::Set(r, getName, getNum);
+    Nan::Set(obj, differentialElevationHead, Nan::New<Number>(rv["elevationHead"]));
+    Nan::Set(obj, differentialPressureHead, Nan::New<Number>(rv["pressureHead"]));
+    Nan::Set(obj, differentialVelocityHead, Nan::New<Number>(rv["velocityHeadDifferential"]));
+    Nan::Set(obj, estimatedSuctionFrictionHead, Nan::New<Number>(rv["suctionHead"]));
+    Nan::Set(obj, estimatedDischargeFrictionHead, Nan::New<Number>(rv["dischargeHead"]));
+    Nan::Set(obj, pumpHead, Nan::New<Number>(rv["pumpHead"]));
+    info.GetReturnValue().Set(obj);
 }
 
 // Fields
@@ -284,18 +286,18 @@ NAN_METHOD(resultsExisting) {
 
     Pump::Style style1 = style();
     Pump::Drive drive1 = drive();
-    Pump::Speed fixed_speed = speed();
+//    Pump::Speed fixed_speed = speed();
 
     Motor::LineFrequency lineFrequency = line();
     Motor::EfficiencyClass efficiencyClass = effCls();
 
     FieldData::LoadEstimationMethod loadEstimationMethod1 = loadEstimationMethod();
 
-    Pump pump(style1, Get("pump_specified") / 100.0, Get("pump_rated_speed"), drive1, Get("kinematic_viscosity"),
-              Get("specific_gravity"), Get("stages"), fixed_speed);
+    Pump pump(style1, Get("pump_specified") / 100.0, Get("pump_rated_speed"), drive1, 0,
+              Get("specific_gravity"), Get("stages"), Pump::Speed::FIXED_SPEED);
 
     Motor motor(lineFrequency, Get("motor_rated_power"), Get("motor_rated_speed"), efficiencyClass, Get("efficiency"),
-                Get("motor_rated_voltage"), Get("motor_rated_fla"), Get("margin"));
+                Get("motor_rated_voltage"), Get("motor_rated_fla"));
 
     Financial fin(Get("operating_fraction"), Get("cost_kw_hour"));
 
@@ -321,7 +323,60 @@ NAN_METHOD(resultsExisting) {
             {"optimization_rating", psat.getOptimizationRating()}
     };
 
-    for(auto const & p: out) {
+    for (auto const & p: out) {
+        Local<String> key = Nan::New<String>(p.first).ToLocalChecked();
+        Local<Number> value = Nan::New(p.second);
+        Nan::Set(r, key, value);
+    }
+    info.GetReturnValue().Set(r);
+}
+
+NAN_METHOD(resultsModified) {
+    inp = info[0]->ToObject();
+    r = Nan::New<Object>();
+
+    double baselinePumpEfficiency = Get("baseline_pump_efficiency") / 100;
+
+    Pump::Style style1 = style();
+    Pump::Drive drive1 = drive();
+    Pump::Speed fixed_speed = speed();
+
+    Motor::LineFrequency lineFrequency = line();
+    Motor::EfficiencyClass efficiencyClass = effCls();
+
+    FieldData::LoadEstimationMethod loadEstimationMethod1 = loadEstimationMethod();
+
+    Pump pump(style1, Get("pump_specified") / 100.0, Get("pump_rated_speed"), drive1, Get("kinematic_viscosity"),
+              Get("specific_gravity"), Get("stages"), fixed_speed);
+
+    Motor motor(lineFrequency, Get("motor_rated_power"), Get("motor_rated_speed"), efficiencyClass, Get("efficiency"),
+                Get("motor_rated_voltage"), Get("motor_rated_fla"), Get("margin"));
+
+    Financial fin(Get("operating_fraction"), Get("cost_kw_hour"));
+
+    FieldData fd(Get("flow_rate"), Get("head"), loadEstimationMethod1, Get("motor_field_power"),
+                 Get("motor_field_current"), Get("motor_field_voltage"));
+
+    PSATResult psat(pump, motor, fin, fd, baselinePumpEfficiency);
+    psat.calculateModified();
+    auto const & mod = psat.getModified();
+
+    std::unordered_map<std::string, double> out = {
+            {"pump_efficiency", mod.pumpEfficiency_ * 100},
+            {"motor_rated_power", mod.motorRatedPower_},
+            {"motor_shaft_power", mod.motorShaftPower_},
+            {"pump_shaft_power", mod.pumpShaftPower_},
+            {"motor_efficiency", mod.motorEfficiency_* 100},
+            {"motor_power_factor", mod.motorPowerFactor_ * 100},
+            {"motor_current", mod.motorCurrent_},
+            {"motor_power", mod.motorPower_},
+            {"annual_energy", mod.annualEnergy_},
+            {"annual_cost", mod.annualCost_ * 1000},
+            {"annual_savings_potential", psat.getAnnualSavingsPotential()  * 1000},
+            {"optimization_rating", psat.getOptimizationRating()}
+    };
+
+    for (auto const & p: out) {
         Local<String> key = Nan::New<String>(p.first).ToLocalChecked();
         Local<Number> value = Nan::New(p.second);
         Nan::Set(r, key, value);
@@ -372,7 +427,7 @@ NAN_METHOD(resultsOptimal) {
             {"optimization_rating", psat.getOptimizationRating()}
     };
 
-    for(auto const & p: out) {
+    for (auto const & p: out) {
         Local<String> key = Nan::New<String>(p.first).ToLocalChecked();
         Local<Number> value = Nan::New(p.second);
         Nan::Set(r, key, value);
