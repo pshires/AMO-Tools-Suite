@@ -199,12 +199,21 @@ std::vector<double> EstimateFLA::calculate() {
 
     double effVal = 0.0;
 
-    if (efficiencyClass_ == Motor::EfficiencyClass::ENERGY_EFFICIENT
-        || efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
+    if (efficiencyClass_ == Motor::EfficiencyClass::ENERGY_EFFICIENT) {
         for (int i = 0; i < 6; i++) {
             plValues[i] = eeFLAValue * plMultiplier[i];
         }
-//    } else if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) { // might have to do something here later TODO
+      } else if (efficiencyClass_ == Motor::EfficiencyClass::PREMIUM) {
+        auto motorEfficiency = MotorEfficiency(lineFrequency_,motorRPM_, Motor::EfficiencyClass::ENERGY_EFFICIENT, specifiedEfficiency_,
+                                        motorRatedPower_, 1);
+        const double effValEE = motorEfficiency.calculate();
+
+        motorEfficiency.setEfficiencyClass(Motor::EfficiencyClass::PREMIUM);
+        const double effValPE = motorEfficiency.calculate();
+
+          for (int i = 0; i < 6; i++) {
+              plValues[i] = seFLAValue * plMultiplier[i] * effvalEE / effvalPE;
+          }
 
     } else if (efficiencyClass_ == Motor::EfficiencyClass::STANDARD) {
         for (int i = 0; i < 6; i++) {
